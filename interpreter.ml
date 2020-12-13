@@ -66,7 +66,8 @@ let get_env (v : evT) : evT env = match v with
 
 (* === RTS: === *)
 
-(* Type checking. *)
+(* --- Type checking. --- *)
+
 let typecheck (s : string) (v : evT) : bool =
   match s with
   | "int" -> (match v with Int _ -> true | _ -> false)
@@ -75,7 +76,14 @@ let typecheck (s : string) (v : evT) : bool =
   | "function" -> (match v with FunVal _ -> true | RecFunVal _ -> true | _ -> false)
   | _ -> failwith "Not a valid type";;
 
-(* --- Funzioni di supporto. --- *)
+let typecheck_set (v : evT) : evT =
+  match v with
+  | Set ("int", _) -> v
+  | Set ("bool", _) -> v
+  | Set ("string", _) -> v
+  | _ -> failwith "Invalid set type";;
+
+(* --- Funzioni di utility. --- *)
 
 let rec aux_contains (ls : 'a list) (x : 'a) : bool =
   match ls with
@@ -253,14 +261,14 @@ let rec eval (e : exp) (r : evT env) : evT = match e with
   | Eint n -> Int n
   | Ebool b -> Bool b
   | Estring s -> String s
-  | Eset t -> Set (t, [])
-  | Singleton (t, v) -> Set (t, [eval v r])
+  | Eset t -> typecheck_set (Set (t, []))
+  | Singleton (t, v) -> typecheck_set (Set (t, [eval v r]))
   (* Operazioni di base sugli insiemi. *)
   | Union (s, t) -> union (eval s r) (eval t r)
   | Intersection (s, t) -> intersection (eval s r) (eval t r)
   | SetDifference (s, t) -> set_difference (eval s r) (eval t r)
-  | SetAdd (s ,x) -> set_add (eval s r) (eval x r)
-  | SetRemove (s ,x) -> set_remove (eval s r) (eval x r)
+  | SetAdd (s, x) -> set_add (eval s r) (eval x r)
+  | SetRemove (s, x) -> set_remove (eval s r) (eval x r)
   | ForAll (p, s) -> forall (eval p r) (eval s r) call
   | Exists (p, s) -> exists (eval p r) (eval s r) call
   | Filter (p, s) -> filter (eval p r) (eval s r) call
@@ -307,7 +315,7 @@ and call fClosure aVal r =
 
 (* === TESTS === *)
 
-(* basico: no let *)
+(* Ambiente vuoto (senza 'let'). *)
 let env0 = emptyenv Unbound;;
 
 let result = eval (FunCall (Fun ("y", Sum (Den "y", Eint 1)), Eint 3)) env0 in
@@ -316,8 +324,14 @@ assert (result = Int 4);;
 let result = eval (FunCall (Let ("x", Eint 2, Fun ("y", Sum (Den "y", Den "x"))), Eint 3)) env0 in
 assert (result = Int 5);;
 
-let result = eval (FunCall (Let ("b", Eint 2, Fun ("y", Sum (Den "y", Den "x"))), Ebool true)) env0 in
+let result = eval (ForAll (Fun ("y", Ebool true), Eset "string")) env0 in
 assert (result = Bool true);;
 
-let result = eval (FunCall (Let ("b", Eint 2, Fun ("y", Sum (Den "y", Den "x"))), Ebool true)) env0 in
+let result = eval (Exists (Fun ("y", Ebool true), Eset "string")) env0 in
+assert (result = Bool false);;
+
+let result = eval (Exists ((Fun ("y", Eq (Den ("y"), Eint 42))), (Singleton ("int", (Eint 42))))) env0 in
+assert (result = Bool true);;
+
+let result = eval (ForAll ((Fun ("y", Eq (Den ("y"), Eint 42))), (Singleton ("int", (Eint 42))))) env0 in
 assert (result = Bool true);;
