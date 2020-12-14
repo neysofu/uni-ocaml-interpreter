@@ -15,12 +15,11 @@ Per eseguire la batteria di test si può usare il comando `ocaml`:
 
 Rispetto alla versione originale, `interpreter.ml` aggiunge il supporto per *stringhe* e *insiemi*. Le stringhe sono sequenze immutabili di caratteri e gli insiemi sono collezioni immutabili e senza ordine di oggetti omogenei. Gli insiemi possono essere parametrizzati esclusivamente su `Int`, `Bool`, o `String` (i.e. non è possibile costruire insiemi di insiemi o insiemi di funzioni).
 
+Il type checking è dinamico (a runtime).
+
 # 2. Regole operazionali per `Set`
 
-Si riportano in seguito le regole operazionali per:
-
-- l'introduzione del tipo di dato `Set` nel linguaggio didattico;
-- le classi di operazioni previste dal tipo di dato `Set`.
+## 2.1. Introduzione del tipo di dato `Set`
 
 $$
 \frac
@@ -31,11 +30,10 @@ $$
 $$
 \frac
     {env \vartriangleright e_1 \implies t \colon String, \ \ t \in \{"string", "int", "bool" \}, \ \ env \vartriangleright e_2 \implies v \colon t }
-    {env \vartriangleright \texttt{Singleton}(e_1, e_2) \implies \{ v \} \colon Set_t}
+    {env \vartriangleright \texttt{Singleton}(e_2, e_1) \implies \{ v \} \colon Set_t}
 $$
 
-`ForAll`, `Exists`, `Filter`:
-
+## 2.2 Operazioni su `Set`
 $$
 \frac
     {env \vartriangleright s \implies A \colon Set_t, \ \ env \vartriangleright p \implies P \colon t \rightarrow Bool}
@@ -49,8 +47,6 @@ $$
         \end{array}
     }
 $$
-
-`Union`, `Intersection`, `SetDifference`, `IsSubsetOf`:
 
 $$
 \frac
@@ -66,8 +62,6 @@ $$
     }
 $$
 
-`SetAdd`, `SetRemove` and `IsIn`:
-
 $$
 \frac
     {env \vartriangleright s \implies A \colon Set_t, \ \ env \vartriangleright e \implies v \colon t}
@@ -81,8 +75,6 @@ $$
     }
 $$
 
-`IsEmpty`:
-
 $$
 \frac
     {env \vartriangleright s \implies A \colon Set_t}
@@ -94,7 +86,6 @@ $$
     }
 $$
 
-`Min` and `Max`:
 $$
 \frac
     {env \vartriangleright s \implies A \colon Set_t, \ \ A \not = \emptyset}
@@ -105,8 +96,6 @@ $$
         \end{array}
     }
 $$
-
-`Map`:
 
 $$
 \frac
